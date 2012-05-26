@@ -23,6 +23,10 @@ import SocketServer
 import re
 import sys
 import subprocess
+import argparse
+
+munin_port=5002
+ssh_host=""
 
 def iostat_config(dname, ssh_data):
 
@@ -54,8 +58,12 @@ def iostat_fetch(dname, ssh_data):
   return output
 
 def do_ssh(cmd=""):
-    prog = subprocess.Popen(["ssh", "dgtlmoon@localhost", cmd], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    global ssh_host
+    prog = subprocess.Popen(["ssh", '-o "PasswordAuthentication no" "-o ConnectTimeout 4"', ssh_host, cmd], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     (stdoutdata, stderrdata) = prog.communicate()
+    if len(stdoutdata) < 3:
+      return None
+      
     return stdoutdata.splitlines()
   
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
@@ -63,8 +71,10 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
 	self.request.sendall("# munin node at AMIDATAFS01\n")
 	# connect via ssh and get the info?
         ssh_data = do_ssh('iostat -x|grep -E "^(Device:|sd[abcde])\s"|sed -r "s/\ +/,/g"')
+        if ssh_data is None:
+          self.request.sendall("Unable to access SSH\n.\n")
 
-	while True:
+	while True and ssh_data is not None:
             data = self.request.recv(1024)
             if not data: break
             command = re.match( r'^(cap|list|config|fetch).(.*)', data, re.M|re.I)
@@ -92,9 +102,15 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
 
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--port', default=5002)
+    parser.add_argument('-r', '--remoteSSHlogin', required=True, help="Example: fnoobar@host (Note: make sure ssh keys are exchanged and works)")
+    args = parser.parse_args()
+    munin_port=args.port
+    ssh_host=args.remoteSSHlogin
+    
     # Port 0 means to select an arbitrary unused port
-    server = ThreadedTCPServer(("localhost", 5002), ThreadedTCPRequestHandler)
+    server = ThreadedTCPServer(("localhost", int(munin_port)), ThreadedTCPRequestHandler)
     ip, port = server.server_address
 
     # Start a thread with the server -- that thread will then start one
