@@ -81,7 +81,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
                   # time to grab all the config details and get em ready
         	  drive = grp.split('_')[1]
                   self.request.sendall(iostat_config(drive, ssh_data))
-                if cmd == 'fetch':
+                if cmd == 'fetch' and cmd.find("iostat_") is not None:
         	  drive = grp.split('_')[1]
                   self.request.sendall(iostat_fetch(drive, ssh_data))
 	
