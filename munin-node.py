@@ -66,6 +66,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
 
 	while True:
             data = self.request.recv(1024)
+            if not data: break
             command = re.match( r'^(cap|list|config|fetch).(.*)', data, re.M|re.I)
             if command is not None:
                 cmd = command.group(1).strip()
@@ -86,6 +87,8 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         	  drive = grp.split('_')[1]
         	  print "Pulling fetch for %s" % (drive)
                   self.request.sendall(iostat_fetch(drive, ssh_data))
+	
+	self.request.close(  )
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
