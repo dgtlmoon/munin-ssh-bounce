@@ -59,7 +59,7 @@ def iostat_fetch(dname, ssh_data):
 
 def do_ssh(cmd=""):
     global ssh_host
-    prog = subprocess.Popen(["ssh", '-o "PasswordAuthentication no" "-o ConnectTimeout 4"', ssh_host, cmd], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    prog = subprocess.Popen(["ssh", '-o PasswordAuthentication no', ssh_host, cmd], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     (stdoutdata, stderrdata) = prog.communicate()
     if len(stdoutdata) < 3:
       return None
