@@ -71,7 +71,6 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
             if command is not None:
                 cmd = command.group(1).strip()
                 grp = command.group(2).strip()
-                print "got (%s) (%s)" % (cmd,grp)
                 if cmd == 'cap':
                   self.request.sendall("cap multigraph dirtyconfig\n")
 
@@ -79,13 +78,11 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
                   self.request.sendall("iostat_sda iostat_sdb iostat_sdc iostat_sdd iostat_sde\n")
 
                 if cmd == 'config' and cmd.find("iostat_") is not None:
-                  print "doing ssh"
                   # time to grab all the config details and get em ready
         	  drive = grp.split('_')[1]
                   self.request.sendall(iostat_config(drive, ssh_data))
                 if cmd == 'fetch':
         	  drive = grp.split('_')[1]
-        	  print "Pulling fetch for %s" % (drive)
                   self.request.sendall(iostat_fetch(drive, ssh_data))
 	
 	self.request.close(  )
