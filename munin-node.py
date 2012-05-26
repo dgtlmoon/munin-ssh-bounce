@@ -62,7 +62,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
 	self.request.sendall("# munin node at AMIDATAFS01\n")
 	# connect via ssh and get the info?
-        ssh_data = do_ssh('iostat -x|grep -E "^(Device:|sd[abcde])\s"|sed -E "s/\ +/,/g"')
+        ssh_data = do_ssh('iostat -x|grep -E "^(Device:|sd[abcde])\s"|sed -r "s/\ +/,/g"')
 
 	while True:
             data = self.request.recv(1024)
